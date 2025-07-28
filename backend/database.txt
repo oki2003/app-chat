@@ -1,0 +1,55 @@
+create database ChatApp
+
+use ChatApp
+
+create table users (
+	id int identity(1,1) primary key,
+	username varchar(20) not null,
+	displayname nvarchar(30) not null,
+	password varchar(100) not null,
+	avatarURL varchar(20) null,
+	backgroundURL varchar(20) null
+	
+)
+
+create table friendRequest(
+	user_id_request int,
+	user_id_response int,
+	foreign key (user_id_request) REFERENCES users(id),
+	foreign key (user_id_response) REFERENCES users(id)
+)
+
+create table friendShips(
+	id int identity(1,1) primary key,
+	user_id_1 int,
+	user_id_2 int,
+	isBlock int default 0, /* 0: not block, otherNumber: user do block */
+	foreign key (user_id_1) REFERENCES users(id),
+	foreign key (user_id_2) REFERENCES users(id)
+)
+
+create table boxChat(
+	id varchar(10) not null,
+	content nvarchar(1000) not null,
+	user_id_send int,
+	user_id_receive int,
+	isRead bit default 0, /* 0: false, 1: true */
+	typeId int,
+	createAt varchar(70),
+	foreign key (typeId) REFERENCES typeMessage(id),
+	foreign key (user_id_send) REFERENCES users(id),
+	foreign key (user_id_receive) REFERENCES users(id)
+)
+
+create table typeMessage(
+	id int identity(1,1) primary key,
+	type varchar(100)
+)
+
+insert into typeMessage (type) values ('message')
+insert into typeMessage (type) values ('default')
+insert into typeMessage (type) values ('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+insert into typeMessage (type) values ('application/vnd.openxmlformats-officedocument.presentationml.presentation')
+insert into typeMessage (type) values ('text/plain')
+insert into typeMessage (type) values ('application/pdf')
+insert into typeMessage (type) values ('image/png')
