@@ -11,18 +11,18 @@ function Signin({ setLogin, navigate }) {
   async function handleSignin(e) {
     e.preventDefault();
     if (userName === "" || password === "") {
-      console.log("Không được để trống.");
+      alert("Không được để trống.");
     } else {
       const response = await accountAPI.signIn(userName, password);
       const data = await response.json();
       if (response.status === 200) {
-        console.log(data.message);
+        alert(data.message);
         currentUser.current = data.currentUser;
         navigate("/Dashboard/friend", { replace: true });
       } else if (response.status === 401) {
-        console.log(data.message);
+        alert(data.message);
       } else {
-        console.log(data.message);
+        alert(data.message);
       }
     }
   }

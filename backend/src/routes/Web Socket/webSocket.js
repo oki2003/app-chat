@@ -85,7 +85,6 @@ wss.on("connection", (ws, request) => {
   });
 
   ws.on("close", () => {
-    // clients.delete(payload.id);
     updateStatus(payload.id, "offline");
   });
 });

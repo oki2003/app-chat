@@ -30,7 +30,6 @@ function PendingFriend({ pendingFriends, setPendingFriends, setShowLayout }) {
         setShowLayout(1);
       }
     } else if (response.status === 409) {
-      console.log(data.message);
       setShowLayout(1);
     } else {
       setPendingFriends((prev) => ({
@@ -61,7 +60,7 @@ function PendingFriend({ pendingFriends, setPendingFriends, setShowLayout }) {
         ...prev,
         pendingReceive: oldPendingReceive,
       }));
-      console.log("Từ chối kết bạn thất bại.");
+      alert("Từ chối kết bạn thất bại.");
     }
   }
 
@@ -70,7 +69,6 @@ function PendingFriend({ pendingFriends, setPendingFriends, setShowLayout }) {
     const response = await friendAPI.acceptFriendRequest(id);
     if (response.status === 404) {
       const data = await response.json();
-      console.log(data.message);
     }
     if (
       pendingFriends.pendingReceive.length === 1 &&

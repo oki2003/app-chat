@@ -15,7 +15,6 @@ export const DialogBoxProvider = ({ children }) => {
     setMessage(msg);
     setShowDialogBox(true);
     setType(tp);
-    console.log({ ...data });
     setData({ ...data });
     return new Promise((resolve) => {
       resolveRef.current = resolve;

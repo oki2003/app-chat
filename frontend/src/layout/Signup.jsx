@@ -25,22 +25,22 @@ function Signup({ setLogin, navigate }) {
       password === "" ||
       rePassword === ""
     ) {
-      console.log("Không được để trống.");
+      alert("Không được để trống.");
     } else if (displayName.length > 30) {
-      console.log("Tên hiện thị không quá 30 kí tự");
+      alert("Tên hiện thị không quá 30 kí tự");
     } else if (containsVietnameseChars(userName)) {
-      console.log("Tên đăng nhập không được chứa dấu tiếng việt");
+      alert("Tên đăng nhập không được chứa dấu tiếng việt");
     } else if (userName.length > 20) {
-      console.log("Tên đăng nhập không quá 20 kí tự");
+      alert("Tên đăng nhập không quá 20 kí tự");
     } else if (containsVietnameseChars(password)) {
-      console.log("Mật khẩu không được chứa dấu tiếng việt");
+      alert("Mật khẩu không được chứa dấu tiếng việt");
     } else if (password !== rePassword) {
-      console.log("Mật khẩu nhập lại không trùng khớp");
+      alert("Mật khẩu nhập lại không trùng khớp");
     } else {
       const response = await accountAPI.signUp(userName, displayName, password);
       const data = await response.json();
       if (response.status === 200) {
-        console.log(data.message);
+        alert(data.message);
         currentUser.current = data.currentUser;
         navigate("/Dashboard/friend", { replace: true });
       }

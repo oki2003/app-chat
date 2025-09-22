@@ -20,7 +20,7 @@ function Sidebar() {
     const response = await friendAPI.FriendShips();
     const data = await response.json();
     if (response.status !== 200) {
-      console.log(data.message);
+      alert(data.message);
     }
     setFriendShips(data.data);
     setDataFriendShip(data.data);
@@ -70,7 +70,6 @@ function Sidebar() {
         </p>
         {friendShips?.length > 0 && (
           <div>
-            {/* <input /> */}
             {friendShips.map((friendship) => (
               <div
                 key={friendship.friendshipsID}

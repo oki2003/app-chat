@@ -28,6 +28,11 @@ create table friendShips(
 	foreign key (user_id_2) REFERENCES users(id)
 )
 
+create table typeMessage(
+	id int identity(1,1) primary key,
+	type varchar(100)
+)
+
 create table boxChat(
 	id varchar(10) not null,
 	content nvarchar(1000) not null,
@@ -41,10 +46,6 @@ create table boxChat(
 	foreign key (user_id_receive) REFERENCES users(id)
 )
 
-create table typeMessage(
-	id int identity(1,1) primary key,
-	type varchar(100)
-)
 
 insert into typeMessage (type) values ('message')
 insert into typeMessage (type) values ('default')

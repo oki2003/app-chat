@@ -8,7 +8,6 @@ import { dialogBoxContext } from "../context/DialogBoxContext";
 const API_SERVER_URL = import.meta.env.VITE_API_SERVER_URL;
 
 function Profile({ setShowProfile, currentFriend }) {
-  console.log(currentFriend);
   const { currentUser, getFriendShipsRef } = useContext(socketContext);
   const { getDialogBox } = useContext(dialogBoxContext);
   const [profileUser, setProfileUser] = useState(null);
@@ -41,9 +40,7 @@ function Profile({ setShowProfile, currentFriend }) {
 
   function handleKeyDownNote(e) {
     if (e.key === "Enter") {
-      console.log("xu li");
-    }
-    if (e.key === "Enter" && e.shiftKey) {
+      alert("Chức năng này sẽ sớm ra mắt !!");
     }
   }
 

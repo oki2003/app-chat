@@ -2,19 +2,25 @@ import { useContext, useRef, useState } from "react";
 import { socketContext } from "./socketContext";
 import { dialogBoxContext } from "./DialogBoxContext";
 import { useNavigate } from "react-router-dom";
+const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
 
 export const SocketProvider = ({ children }) => {
   const navigate = useNavigate();
   const { getDialogBox } = useContext(dialogBoxContext);
+
   // pendingfriend in FriendLayout
   const getPendingFriendRef = useRef(null);
+
   //Sidebar
   const getFriendShipsRef = useRef(null);
   const [dataFriendShip, setDataFriendShip] = useState([]);
+
   //ChatLayout
   const getDataMessageRef = useRef(null);
+
   //Signin, Signup, Dashboard
   const currentUser = useRef(null);
+
   //Video
   const makeCallRef = useRef(null);
   const acceptCallRef = useRef(null);
@@ -61,7 +67,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   if (isConnectSocket && socket === null) {
-    const ws = new WebSocket("ws://localhost:8080");
+    const ws = new WebSocket(WS_SERVER_URL);
     ws.onopen = () => {
       ws.send(
         JSON.stringify({

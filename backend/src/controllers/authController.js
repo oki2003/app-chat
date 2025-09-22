@@ -33,7 +33,7 @@ const authController = {
                 httpOnly: true,
                 secure: true,
                 sameSite: "Strict",
-                maxAge: 24 * 60 * 60 * 1000, // 1 ngày
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
                 path: "/",
               });
               res.status(200).json({
@@ -96,7 +96,7 @@ const authController = {
             httpOnly: true,
             secure: true,
             sameSite: "Strict",
-            maxAge: 24 * 60 * 60 * 1000, // 1 ngày
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
             path: "/",
           });
           res.status(200).json({
@@ -118,7 +118,7 @@ const authController = {
 
   async auth(req, res) {
     jwt.verify(req.cookies.token, process.env.JWT_SECRET, async (err, user) => {
-      if (err) return res.sendStatus(403); // Token không hợp lệ
+      if (err) return res.sendStatus(403); // Token invalid
       const conn = await connectDB();
       const resultQuery = await conn
         .request()
