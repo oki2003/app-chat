@@ -6,6 +6,7 @@ import path from "path";
 import responseError from "../../responseError.js";
 
 async function canAddMessage(req, conn, idUserReceive, res) {
+  // id Chat
   const [user1, user2] = req.body.idChat.split("_");
   const resultQuery = await conn.request().query(
     `select isBlock from friendShips where user_id_1 = ${user1} and user_id_2 = ${user2}
@@ -45,27 +46,26 @@ const chatController = {
     }
   },
 
-  async sendMessage(req, res) {
+  async sendMessage(idChat, message, idUserSend, idUserReceive, createAt) {
     try {
-      const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
       const conn = await connectDB();
-      const idUserReceive = parseInt(
-        req.body.idChat.replace("_", "").replace(payload.id, "")
+      await conn
+        .request()
+        .query(
+          `insert into boxChat (id, content, user_id_send, user_id_receive, isRead, typeId, createAt) VALUES ('${idChat}',N'${message.replace(
+            "'",
+            "''"
+          )}',${idUserSend},${idUserReceive},0,1,'${createAt}')`
+        );
+      sendMessageToClient(
+        idUserReceive,
+        "Receive New Message",
+        message,
+        idUserSend
       );
-      const check = await canAddMessage(req, conn, idUserReceive, res);
-      if (check) {
-        await conn
-          .request()
-          .query(
-            `insert into boxChat (id, content, user_id_send, user_id_receive, isRead, typeId, createAt) VALUES ('${req.body.idChat}',N'${req.body.message}',${payload.id},${idUserReceive},0,1,'${req.body.createAt}')`
-          );
-        sendMessageToClient(idUserReceive, "Receive New Message");
-        res.status(200).json({
-          message: "Gửi tin nhắn thành công",
-        });
-      }
+      //sendMessageToClient(idUserSend,"")
     } catch (err) {
-      responseError(err, res);
+      console.log(err);
     }
   },
 
@@ -143,6 +143,7 @@ const chatController = {
       const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
       const idChat = req.params.idChat;
       const conn = await connectDB();
+      console.log("results:", idChat, "-", payload.id);
       const resultQuery = await conn
         .request()
         .query(

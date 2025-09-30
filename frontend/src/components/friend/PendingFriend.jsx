@@ -1,215 +1,87 @@
-import { useContext, useState } from "react";
-const API_SERVER_URL = import.meta.env.VITE_API_SERVER_URL;
+import { useEffect, useState } from "react";
 import friendAPI from "../../services/friendAPI";
-import { socketContext } from "../../context/socketContext";
-import {
-  SvgCancelFriend,
-  SvgIgnoreFriend,
-  SvgAcceptFriend,
-  SvgSearch,
-  SvgClear,
-} from "../../assets/icons/icons";
+import PresenceAvatar from "../PresenceAvatar";
 
-function PendingFriend({ pendingFriends, setPendingFriends, setShowLayout }) {
-  const [search, setSeach] = useState("");
-  const { getFriendShipsRef } = useContext(socketContext);
+function PendingFriend({ pendingFriends, setPendingFriends, setShowPending }) {
+  const [pendingList, setPendingList] = useState([]);
+
+  async function getPendingFriends() {
+    const response = await friendAPI.getPendings();
+    const data = await response.json();
+    setPendingList(data.data);
+  }
+
+  useEffect(() => {
+    getPendingFriends();
+  }, []);
 
   async function cancelFriendRequest(id, displayname) {
-    const oldPendingSent = pendingFriends.pendingSent;
-    setPendingFriends((prev) => ({
-      ...prev,
-      pendingSent: pendingFriends.pendingSent.filter((item) => item.id !== id),
-    }));
+    const oldPendingList = pendingList;
+    setPendingList(pendingList.filter((item) => item.id !== id));
     const response = await friendAPI.cancelFriendRequest(id, displayname);
-    const data = await response.json();
     if (response.status === 200) {
-      if (
-        pendingFriends.pendingSent.length === 1 &&
-        pendingFriends.pendingReceive.length === 0
-      ) {
-        setShowLayout(1);
-      }
+      return;
     } else if (response.status === 409) {
-      setShowLayout(1);
-    } else {
-      setPendingFriends((prev) => ({
-        ...prev,
-        pendingSent: oldPendingSent,
-      }));
-    }
-  }
-
-  async function ignoreFriendRequest(id) {
-    const oldPendingReceive = pendingFriends.pendingReceive;
-    setPendingFriends((prev) => ({
-      ...prev,
-      pendingReceive: pendingFriends.pendingReceive.filter(
-        (item) => item.id !== id
-      ),
-    }));
-    const response = await friendAPI.ignoreFriendRequest(id);
-    if (response.status === 200) {
-      if (
-        pendingFriends.pendingReceive.length === 1 &&
-        pendingFriends.pendingSent.length === 0
-      ) {
-        setShowLayout(1);
-      }
-    } else {
-      setPendingFriends((prev) => ({
-        ...prev,
-        pendingReceive: oldPendingReceive,
-      }));
-      alert("Từ chối kết bạn thất bại.");
-    }
-  }
-
-  async function acceptFriendRequest(id) {
-    const oldPendingReceive = pendingFriends.pendingReceive;
-    const response = await friendAPI.acceptFriendRequest(id);
-    if (response.status === 404) {
       const data = await response.json();
-    }
-    if (
-      pendingFriends.pendingReceive.length === 1 &&
-      pendingFriends.pendingSent.length === 0
-    ) {
-      setShowLayout(1);
-    }
-    setPendingFriends((prev) => ({
-      ...prev,
-      pendingReceive: pendingFriends.pendingReceive.filter(
-        (item) => item.id !== id
-      ),
-    }));
-    getFriendShipsRef.current();
-    if (response.status !== 404 && response.status !== 200) {
-      setPendingFriends((prev) => ({
-        ...prev,
-        pendingReceive: oldPendingReceive,
-      }));
+      alert(data.message);
+    } else {
+      setPendingList([...oldPendingList]);
     }
   }
-  return (
-    <div>
-      <div className="flex pr-3 items-center justify-between bg-[#121214] h-[38px] rounded-lg outline outline-1 outline-[gray] focus-within:outline-[#539af2] focus-within:outline focus-within:outline-1">
-        <input
-          className="bg-[#121214] pl-3 rounded-lg outline-none h-full w-full"
-          placeholder="Tìm kiếm"
-          value={search}
-          onChange={(e) => setSeach(e.target.value)}
-        />
-        {search === "" ? (
-          <SvgSearch width={17} height={17} />
-        ) : (
-          <SvgClear width={17} height={17} onClick={() => setSeach("")} />
-        )}
-      </div>
-      <div
-        className={`h-[60px] flex items-center border-b border-[#313136] ${
-          pendingFriends.pendingSent.length === 0 && "hidden"
-        }`}
-      >
-        Đã gửi - {pendingFriends.pendingSent.length}
-      </div>
-      {pendingFriends.pendingSent
-        .filter(
-          (pendingFriend) =>
-            pendingFriend.username
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            pendingFriend.displayname
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            search === ""
-        )
-        .map((pendingFriend) => (
-          <div
-            key={pendingFriend.id}
-            className="group h-[60px] hover:bg-[#242428] rounded-lg p-3 flex items-center justify-between cursor-pointer mb-3"
-          >
-            <div className="flex items-center">
-              <img
-                src={`${API_SERVER_URL}${pendingFriend.avatarURL}`}
-                className="w-[32px] h-[32px] mr-[12px] rounded-lg"
-              />
-              <div>
-                <p>{pendingFriend.displayname}</p>
-                <p className="text-[#aeaeb6] text-xs">
-                  {pendingFriend.username}
-                </p>
-              </div>
-            </div>
-            <div
-              className="group/cover p-2 group-hover:bg-[#111113] rounded-full"
-              onClick={() =>
-                cancelFriendRequest(pendingFriend.id, pendingFriend.displayname)
-              }
-            >
-              <SvgCancelFriend
-                width={20}
-                height={20}
-                className="text-[#afafb6] group-hover/cover:text-red-600"
-              />
-            </div>
-          </div>
-        ))}
 
-      <div
-        className={`h-[60px] flex items-center border-b border-[#313136] ${
-          pendingFriends.pendingReceive.length === 0 && "hidden"
-        }`}
-      >
-        Đã nhận - {pendingFriends.pendingReceive.length}
-      </div>
-      {pendingFriends.pendingReceive
-        .filter(
-          (pendingFriend) =>
-            pendingFriend.username
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            pendingFriend.displayname
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            search === ""
-        )
-        .map((pendingFriend) => (
-          <div
-            key={pendingFriend.id}
-            className="group h-[60px] hover:bg-[#242428] rounded-lg p-3 flex items-center justify-between cursor-pointer mb-3"
-          >
-            <div className="flex items-center">
-              <img
-                src={`${API_SERVER_URL}${pendingFriend.avatarURL}`}
-                className="w-[32px] h-[32px] mr-[12px] rounded-lg"
-              />
-              <div>
-                <p>{pendingFriend.displayname}</p>
-                <p className="text-[#aeaeb6] text-xs">
-                  {pendingFriend.username}
-                </p>
+  return (
+    <div className="flex">
+      {pendingList.length === 0 ? (
+        <div className="m-auto text-center py-12">
+          {/* <Clock className="h-16 w-16 mx-auto text-[#99A3B0] mb-4" /> */}
+          <p className="text-lg text-[#99A3B0]">Không có yêu cầu chờ xử lý</p>
+          <p className="text-sm text-[#99A3B0]">
+            Yêu cầu kết bạn bạn đã gửi sẽ hiển thị ở đây.
+          </p>
+        </div>
+      ) : (
+        <div className="m-auto container grid gap-4 grid-cols-2">
+          {pendingList.map((request) => (
+            <div
+              key={request.id}
+              className="rounded-lg border border-[#2A3540]/50 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-[#F4F8FB] shadow-sm"
+            >
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8">
+                      <PresenceAvatar
+                        imgUrl={request.avatarURL}
+                        status={false}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#E2E8F0]">
+                        {request.displayname}
+                      </h3>
+                      <p className="text-sm text-[#94A3B8]">
+                        {request.username}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center rounded-full border border-[#FACC15]/30 bg-[#FACC15]/20 px-2.5 py-0.5 text-xs font-semibold text-[#FACC15] transition-colors">
+                    Pending
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      cancelFriendRequest(request.id, request.displayname)
+                    }
+                    className="text-sm border border-[#2A3540] bg-[#0F172A] hover:bg-[#334155] hover:text-[#F4F8FB] h-9 rounded-md px-3 gap-2 transition-colors"
+                  >
+                    Hủy bỏ
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex">
-              <div
-                className="group/cover mr-3 p-2 group-hover:bg-[#111113] rounded-full"
-                onClick={() => ignoreFriendRequest(pendingFriend.id)}
-              >
-                <SvgIgnoreFriend
-                  width={20}
-                  height={20}
-                  className="text-[#afafb6] group-hover/cover:text-red-600"
-                />
-              </div>
-              <div
-                className="group/cover p-2 group-hover:bg-[#111113] rounded-full"
-                onClick={() => acceptFriendRequest(pendingFriend.id)}
-              >
-                <SvgAcceptFriend width={20} height={20} />
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      )}
     </div>
   );
 }

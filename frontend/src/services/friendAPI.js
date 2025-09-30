@@ -93,8 +93,18 @@ const friendAPI = {
     });
   },
 
-  PendingFriends: async () => {
-    return fetch(`${API_SERVER_URL}/api/PendingFriends`, {
+  getPendings: async () => {
+    return fetch(`${API_SERVER_URL}/api/getPendings`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      credentials: "include",
+    });
+  },
+
+  getInvitations: async () => {
+    return fetch(`${API_SERVER_URL}/api/getInvitations`, {
       headers: {
         "Content-Type": "application/json",
       },

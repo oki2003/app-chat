@@ -1,4 +1,4 @@
-function ShopLayout() {
+function ShopPage() {
   // not finishing this component
   return (
     <h1 className="text-white p-4">
@@ -7,4 +7,4 @@ function ShopLayout() {
   );
 }
 
-export default ShopLayout;
+export default ShopPage;

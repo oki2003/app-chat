@@ -2,7 +2,6 @@ import { useContext, useEffect, useRef, useState } from "react";
 import PresenceAvatar from "./PresenceAvatar";
 import { socketContext } from "../context/socketContext";
 import { SvgEdit } from "../assets/icons/icons";
-import Loading from "./Loading";
 import profileAPI from "../services/profileAPI";
 import { dialogBoxContext } from "../context/DialogBoxContext";
 const API_SERVER_URL = import.meta.env.VITE_API_SERVER_URL;

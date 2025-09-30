@@ -1,5 +1,6 @@
 import { WebSocketServer } from "ws";
 import connectDB from "../../../connectDB.js";
+import chatController from "../../controllers/chatController.js";
 
 const clients = new Map(); // use Map to store clients with key that is id
 const wss = new WebSocketServer({ port: 8080 });
@@ -8,10 +9,22 @@ wss.on("connection", (ws, request) => {
   ws.on("error", console.error);
   ws.on("message", (message) => {
     const parsedData = JSON.parse(message);
+
     if (parsedData.type === "Add client") {
       clients.set(payload.id, [ws]);
       updateStatus(payload.id, "online");
     }
+
+    if (parsedData.type === "Send Message") {
+      chatController.sendMessage(
+        parsedData.idChat,
+        parsedData.messageContent,
+        payload.id,
+        parsedData.idUserReceive,
+        parsedData.createAt
+      );
+    }
+
     if (parsedData.type === "Init Call Connection") {
       sendMessageToClient(
         parsedData.to,

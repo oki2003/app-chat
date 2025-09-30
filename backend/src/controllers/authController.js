@@ -82,7 +82,7 @@ const authController = {
           const result = await conn
             .request()
             .query(
-              `insert into users (username, displayname, password, avatarURL, backgroundURL) output inserted.id values ('${username}', '${displayname}', '${hash}', '/images/default.png', null);`
+              `insert into users (username, displayname, password, avatarURL, backgroundURL) output inserted.id values ('${username}', N'${displayname}', '${hash}', '/images/default.png', null);`
             );
           const token = jwt.sign(
             {

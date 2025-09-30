@@ -3,7 +3,7 @@ import { iconFile } from "../../assets/icons/icons";
 import Profile from "../Profile";
 const API_SERVER_URL = import.meta.env.VITE_API_SERVER_URL;
 
-function SideChat({ dataMessages, id, currentFriend }) {
+function SideChat({ dataMessages, id, currentFriend, setShowSideChat }) {
   const [imgList, setImgList] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [linkList, setLinkList] = useState([]);
@@ -39,9 +39,19 @@ function SideChat({ dataMessages, id, currentFriend }) {
   }, [dataMessages]);
 
   return (
-    <div className="h-[100%] relative">
-      <div className="text-center px-[30px] py-[23px] h-[65px] border-b border-[#313136]">
-        <p className="text-2xl text-white font-semibold">Thông tin hội thoại</p>
+    <div className="w-[40%] h-[100%] absolute top-0 right-0 bg-gradient-to-br from-[#0D1218] to-[#1F2730]">
+      <div className="flex items-center text-center px-[30px] py-[23px] h-[65px] border-b border-[#313136]">
+        <button
+          onClick={() => setShowSideChat(false)}
+          className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all"
+        >
+          <span className="m-auto group-hover:text-black transition-all">
+            X
+          </span>
+        </button>
+        <p className=" flex-1 text-2xl text-white font-semibold">
+          Thông tin hội thoại
+        </p>
       </div>
       <div
         className="px-[10px] py-[23px] overflow-y-auto scroll-smooth h-[85%]

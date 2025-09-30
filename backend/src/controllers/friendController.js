@@ -231,8 +231,8 @@ const friendController = {
         }
       } else {
         res.status(409).json({
-          message: "Người này đã hủy kết bạn nên cuộc trò chuyện đã bị xóa.",
-          navigate: true,
+          message: "Người này đã hủy kết bạn.",
+          delete: true,
         });
       }
     } catch (err) {
@@ -253,8 +253,8 @@ const friendController = {
         );
       if (resultQuery.recordset.length === 0) {
         res.status(409).json({
-          message: "Người này đã hủy kết bạn nên cuộc trò chuyện sẽ bị xóa.",
-          navigate: true,
+          message: "Người này đã hủy kết bạn.",
+          delete: true,
         });
       } else {
         const isBlock = resultQuery.recordset[0].isBlock;
@@ -278,19 +278,34 @@ const friendController = {
     }
   },
 
-  async PendingFriends(req, res) {
+  async getPendings(req, res) {
     try {
       const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
       const conn = await connectDB();
-      const resultQuery = await conn.request().query(
-        `select user_id_request, user_id_response, id, username, displayname, avatarURL from friendRequest join users on friendRequest.user_id_response = users.id where friendRequest.user_id_request = ${payload.id}
-          select user_id_request, user_id_response, id, username, displayname, avatarURL from friendRequest join users on friendRequest.user_id_request = users.id where friendRequest.user_id_response = ${payload.id}`
-      );
+      const resultQuery = await conn
+        .request()
+        .query(
+          `select user_id_request, user_id_response, id, username, displayname, avatarURL from friendRequest join users on friendRequest.user_id_response = users.id where friendRequest.user_id_request = ${payload.id}`
+        );
       res.status(200).json({
-        data: {
-          pendingSent: resultQuery.recordsets[0],
-          pendingReceive: resultQuery.recordsets[1],
-        },
+        data: resultQuery.recordset,
+      });
+    } catch (err) {
+      responseError(err, res);
+    }
+  },
+
+  async getInvitations(req, res) {
+    try {
+      const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+      const conn = await connectDB();
+      const resultQuery = await conn
+        .request()
+        .query(
+          `select user_id_request, user_id_response, id, username, displayname, avatarURL from friendRequest join users on friendRequest.user_id_request = users.id where friendRequest.user_id_response = ${payload.id}`
+        );
+      res.status(200).json({
+        data: resultQuery.recordset,
       });
     } catch (err) {
       responseError(err, res);

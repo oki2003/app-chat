@@ -1,21 +1,35 @@
-import Dashboard from "./views/Dashboard";
-import AuthenticationPage from "./views/AuthenticationPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import FriendLayout from "./layout/FriendLayout";
-import ShopLayout from "./layout/ShopLayout";
-import ChatLayout from "./layout/ChatLayout";
-import NotFound from "./components/NotFound";
 import { SocketProvider } from "./context/SocketProvider";
+import FriendPage from "./pages/FriendPage";
+import ShopPage from "./pages/ShopPage";
+import ChatPage from "./pages/ChatPage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+import NotFound from "./components/NotFound";
+import AddFriend from "./components/friend/AddFriend";
+import PendingFriend from "./components/friend/PendingFriend";
+import FriendList from "./components/friend/FriendList";
+import Invitation from "./components/friend/Invitation";
+
 function App() {
   return (
     <Router>
       <SocketProvider>
         <Routes>
-          <Route path="/" element={<AuthenticationPage />} />
-          <Route path="/dashboard" element={<Dashboard />}>
-            <Route path="friend" element={<FriendLayout />} />
-            <Route path="shop" element={<ShopLayout />} />
-            <Route path="chat/:id" element={<ChatLayout />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Dashboard />}>
+            <Route index element={<FriendPage />}></Route>
+            <Route path="friends" element={<FriendPage />}>
+              <Route index element={<FriendList />} />
+              <Route path="add" element={<AddFriend />} />
+              <Route path="sent" element={<PendingFriend />} />
+              <Route path="invitations" element={<Invitation />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+            <Route path="shop" element={<ShopPage />} />
+            <Route path="chat" element={<ChatPage />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="*" element={<NotFound />} />
