@@ -29,7 +29,7 @@ wss.on("connection", (ws, request) => {
       sendMessageToClient(
         parsedData.to,
         "Init Call Connection",
-        parsedData.typeCall,
+        parsedData.data,
         payload.id
       );
     }
@@ -59,6 +59,7 @@ wss.on("connection", (ws, request) => {
         parsedData.offer,
         payload.id
       );
+      console.log("gui offer:", parsedData.to, "-", payload.id);
     }
 
     if (parsedData.type === "Send Answer") {

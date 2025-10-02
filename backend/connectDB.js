@@ -8,7 +8,7 @@ async function connectDB() {
   await conn
     .connect()
     .then(function () {
-      console.log("✅ Connected database successfully");
+      // console.log("✅ Connected database successfully");
     })
     .catch(function (err) {
       console.error("❌ Failed to connect database", err);

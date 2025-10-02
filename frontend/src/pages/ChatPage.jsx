@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import PresenceAvatar from "../components/PresenceAvatar";
 import friendAPI from "../services/friendAPI";
-import ChatWindow from "../components/ChatWindow";
+import ChatWindow from "../components/chat/ChatWindow";
 import { useNavigate } from "react-router-dom";
+import { socketContext } from "../context/socketContext";
 
 function ChatPage2() {
   const [friendShips, setFriendShips] = useState([]);
   const [friend, setFriend] = useState({});
   const navigate = useNavigate();
+  const { infoCall } = useContext(socketContext);
 
   async function getFriendShips() {
     const response = await friendAPI.FriendShips();
@@ -16,12 +18,18 @@ function ChatPage2() {
       alert(data.message);
     }
     setFriendShips(data.data);
+    if (infoCall) {
+      const friendCall = data.data.filter(
+        (item) => item.id === infoCall.idFriend
+      );
+      setFriend(friendCall[0]);
+    }
   }
 
   const handler = (e) => {
     if (
       e.detail.data.message === "Receive New Message" &&
-      e.detail.data.idFrom === friend?.id
+      e.detail.data.idFrom === friend.id
     ) {
       return;
     }
@@ -37,13 +45,23 @@ function ChatPage2() {
 
   useEffect(() => {
     getFriendShips();
-    return () => document.removeEventListener("WebSocketEvent", handler);
   }, []);
 
   useEffect(() => {
     document.addEventListener("WebSocketEvent", handler);
     return () => document.removeEventListener("WebSocketEvent", handler);
   }, [friend]);
+
+  useEffect(() => {
+    if (friendShips.length !== 0) {
+      if (friend.id !== infoCall.idFriend) {
+        const friendCall = friendShips.filter(
+          (item) => item.id === infoCall.idFriend
+        );
+        setFriend(friendCall[0]);
+      }
+    }
+  }, [infoCall]);
 
   function updateFriendShips(friendship, index) {
     const arr = friendShips;

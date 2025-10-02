@@ -31,6 +31,7 @@ function FriendList() {
         ]);
         return;
       } else if (data.delete) {
+        getDialogBox(data.message, "notify");
         setFriendList(friendList.filter((item, index) => index !== index));
       } else {
         setFriendList([

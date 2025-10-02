@@ -60,7 +60,6 @@ function InputChat({ setMessages, friend }) {
       }
     }
   }
-  console.log(friend);
 
   function handleSendMessage() {
     const createAt = new Date();

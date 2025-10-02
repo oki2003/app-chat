@@ -17,10 +17,19 @@ function Navbar() {
 
           <div className="flex space-x-1">
             <Link
+              to="/"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                location.pathname === "/"
+                  ? "bg-[#00CFFF] text-[#0A0E13] shadow-[0_0_20px_#00CFFF4D]"
+                  : "text-[#99A3B0] hover:text-[#F4F8FB] hover:bg-[#1F2730]"
+              }`}
+            >
+              <span className="font-medium">Tin tức</span>
+            </Link>
+            <Link
               to="/friends"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                location.pathname.includes("/friends") ||
-                location.pathname === "/"
+                location.pathname.includes("/friends")
                   ? "bg-[#00CFFF] text-[#0A0E13] shadow-[0_0_20px_#00CFFF4D]"
                   : "text-[#99A3B0] hover:text-[#F4F8FB] hover:bg-[#1F2730]"
               }`}

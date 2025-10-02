@@ -1,105 +1,112 @@
 import PresenceAvatar from "../PresenceAvatar";
-import { SvgInfo, SvgVideoCall, SvgVoiceCall } from "../../assets/icons/icons";
-import { socketContext } from "../../context/socketContext";
+import SvgVoiceCall from "../../assets/icons/SvgVoiceCall";
+import SvgVideoCall from "../../assets/icons/SvgVideoCall";
+import SvgInfo from "../../assets/icons/SvgInfo";
 import { useContext, useEffect, useState } from "react";
+import { socketContext } from "../../context/socketContext";
+import { dialogBoxContext } from "../../context/DialogBoxContext";
 import Video from "./Video";
 
-function ChatHeader({ currentFriend, id, setShowSideChat, showSideChat }) {
-  const { makeCallRef } = useContext(socketContext);
-  const [type, setType] = useState("video");
-  const [showCall, setShowCall] = useState({
-    isShow: false,
-    isSend: true,
-    isReceive: false,
-  });
+function ChatHeader({ friend, setShowSideChat, showSideChat }) {
+  const [showCall, setShowCall] = useState(false);
+  const [type, setType] = useState("voice");
+  const { socket, currentUser, infoCall } = useContext(socketContext);
+  const { getDialogBox } = useContext(dialogBoxContext);
 
-  async function makeCall(type, call) {
+  function makeCall(type) {
+    setShowCall(true);
     setType(type);
-    setShowCall(call || { isShow: true, isSend: true, isReceive: false });
+    socket.send(
+      JSON.stringify({
+        type: "Init Call Connection",
+        to: friend.id,
+        data: {
+          typeCall: type,
+          displayname: currentUser.current.displayname,
+          avatarURL: currentUser.current.avatarURL,
+        },
+        id: friend.friendshipsID,
+      })
+    );
   }
 
   useEffect(() => {
-    if (showCall.isShow) {
-      setShowSideChat(false);
+    if (infoCall) {
+      setShowCall(true);
     }
-  }, [showCall]);
+  }, [infoCall]);
+
+  const handler = (e) => {
+    if (e.detail.data.message === "Reject Call Connection") {
+      setShowCall(false);
+      getDialogBox("Người này đã từ chối cuộc gọi", "notify");
+    }
+  };
 
   useEffect(() => {
-    if (makeCallRef.current) {
-      makeCall(makeCallRef.current, {
-        isShow: true,
-        isSend: false,
-        isReceive: true,
-      });
-    }
-  }, [makeCallRef.current]);
+    document.addEventListener("WebSocketEvent", handler);
+    return () => document.removeEventListener("WebSocketEvent", handler);
+  }, []);
 
   return (
-    <header
-      className={`h-auto text-white px-4 w-full border-b border-[#313136]`}
-    >
-      <div
-        key={id}
-        className="h-[65px] flex items-center justify-between w-full"
-      >
-        <div className="flex">
-          <div className="w-[30px] h-[30px] mr-[12px]">
-            <PresenceAvatar
-              imgUrl={currentFriend?.avatarURL}
-              status={currentFriend?.status}
-            />
+    <div className="p-6 space-y-0 pb-3 border-b border-[#2A35407F]">
+      <div className="flex justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8">
+            <PresenceAvatar imgUrl={friend.avatarURL} status={friend.status} />
           </div>
-          <h1 className="text-2xl font-semibold">
-            {currentFriend?.displayname}
-          </h1>
+          <div>
+            <h3 className="font-semibold">{friend.displayname}</h3>
+          </div>
         </div>
-        <div className="flex text-[#94959c]">
-          {!showCall.isShow && currentFriend?.isBlock === 0 && (
-            <div className="flex">
-              <SvgVoiceCall
-                width={18}
-                height={18}
-                className="mr-[22px] cursor-pointer hover:text-[#aaaab1]"
-                onClick={() =>
-                  makeCall({
-                    video: false,
-                    audio: true,
-                  })
-                }
-              />
-              <SvgVideoCall
-                width={18}
-                height={18}
-                className="mr-[22px] cursor-pointer hover:text-[#aaaab1]"
-                onClick={() =>
-                  makeCall({
-                    video: true,
-                    audio: true,
-                  })
-                }
-              />
+        <div className="flex items-center gap-2">
+          {friend.isBlock === 0 && !showCall && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => makeCall("voice")}
+                className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all"
+              >
+                <SvgVoiceCall
+                  width={17}
+                  height={17}
+                  className="m-auto text-white group-hover:text-black transition-all"
+                />
+              </button>
+              <button
+                onClick={() => makeCall("video")}
+                className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all"
+              >
+                <SvgVideoCall
+                  width={18}
+                  height={18}
+                  className="m-auto text-white group-hover:text-black transition-all"
+                />
+              </button>
             </div>
           )}
-          <SvgInfo
-            width={19}
-            height={19}
-            className={`cursor-pointer hover:text-[#aaaab1] ${
-              showSideChat && "text-white"
-            }`}
+          <button
             onClick={() => setShowSideChat(!showSideChat)}
-          />
+            className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all"
+          >
+            <SvgInfo
+              width={17}
+              height={17}
+              className="m-auto text-white group-hover:text-black transition-all"
+            />
+          </button>
         </div>
       </div>
-      {showCall.isShow && (
+
+      {showCall && (
         <Video
           type={type}
-          currentFriend={currentFriend}
-          isSend={showCall.isSend}
-          isReceive={showCall.isReceive}
+          currentFriend={friend}
+          // isSend={showCall.isSend}
+          // isReceive={showCall.isReceive}
           setShowCall={setShowCall}
         />
       )}
-    </header>
+    </div>
   );
 }
 

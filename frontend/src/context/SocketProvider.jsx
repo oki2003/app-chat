@@ -4,6 +4,7 @@ const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
 
 export const SocketProvider = ({ children }) => {
   const currentUser = useRef(null);
+  const [infoCall, setInfoCall] = useState(null);
 
   const [isConnectSocket, setConnectSocket] = useState(false);
   const [socket, setSocket] = useState(null);
@@ -34,8 +35,10 @@ export const SocketProvider = ({ children }) => {
     <socketContext.Provider
       value={{
         setConnectSocket,
-        currentUser,
         socket,
+        currentUser,
+        infoCall,
+        setInfoCall,
       }}
     >
       {children}

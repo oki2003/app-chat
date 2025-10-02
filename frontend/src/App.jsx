@@ -5,12 +5,14 @@ import ShopPage from "./pages/ShopPage";
 import ChatPage from "./pages/ChatPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Dashboard from "./layouts/Dashboard";
 
 import NotFound from "./components/NotFound";
 import AddFriend from "./components/friend/AddFriend";
 import PendingFriend from "./components/friend/PendingFriend";
 import FriendList from "./components/friend/FriendList";
 import Invitation from "./components/friend/Invitation";
+import NewsPage from "./pages/NewsPage";
 
 function App() {
   return (
@@ -20,7 +22,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Dashboard />}>
-            <Route index element={<FriendPage />}></Route>
+            <Route index element={<NewsPage />} />
             <Route path="friends" element={<FriendPage />}>
               <Route index element={<FriendList />} />
               <Route path="add" element={<AddFriend />} />

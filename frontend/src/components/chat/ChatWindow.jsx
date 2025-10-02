@@ -1,30 +1,24 @@
-import PresenceAvatar from "../PresenceAvatar";
 import { useContext, useEffect, useState, useRef } from "react";
 import { socketContext } from "../../context/socketContext";
 import chatAPI from "../../services/chatAPI";
-import SvgVoiceCall from "../../assets/icons/SvgVoiceCall";
-import SvgVideoCall from "../../assets/icons/SvgVideoCall";
-import SvgInfo from "../../assets/icons/SvgInfo";
 
 const API_SERVER_URL = import.meta.env.VITE_API_SERVER_URL;
 import { iconFile } from "../../assets/icons/icons";
 import SideChat from "./SideChat";
 import InputChat from "./InputChat";
-import SvgBlockFriend from "../../assets/icons/SvgBlockFriend";
-import { dialogBoxContext } from "../../context/DialogBoxContext";
+import ChatHeader from "./ChatHeader";
 
 function ChatWindow({ friendInfo }) {
   const [messages, setMessages] = useState([]);
   const { currentUser } = useContext(socketContext);
-  const { getDialogBox } = useContext(dialogBoxContext);
   const scrollRef = useRef(null);
   const [showSideChat, setShowSideChat] = useState(false);
   const [friend, setFriend] = useState(friendInfo);
 
   async function getDataMessage() {
     const [resMessages, resUpdate] = await Promise.all([
-      chatAPI.getMessage(friend.friendshipsID),
-      chatAPI.updateStatusMessage(friend.friendshipsID),
+      chatAPI.getMessage(friendInfo.friendshipsID),
+      chatAPI.updateStatusMessage(friendInfo.friendshipsID),
     ]);
     const data = await resMessages.json();
     const newData = data.data.sort(
@@ -35,7 +29,7 @@ function ChatWindow({ friendInfo }) {
 
   const handler = (e) => {
     if (e.detail.data.message === "Receive New Message") {
-      if (e.detail.data.idFrom === friend.id) {
+      if (e.detail.data.idFrom === friendInfo.id) {
         setMessages((prev) => [
           ...prev,
           {
@@ -72,46 +66,11 @@ function ChatWindow({ friendInfo }) {
   return (
     <div className="relative overflow-hidden flex flex-col rounded-lg border bg-[#0D1218] text-[#F4F8FB] shadow-sm h-full bg-gradient-to-br from-[#0D1218] to-[#1F2730] border-[#2A35407F]">
       {/* Chat Header */}
-      <div className="p-6 flex items-center justify-between space-y-0 pb-3 border-b border-[#2A35407F]">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8">
-            <PresenceAvatar imgUrl={friend.avatarURL} status={friend.status} />
-          </div>
-          <div>
-            <h3 className="font-semibold">{friend.displayname}</h3>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {friend.isBlock === 0 && (
-            <div className="flex items-center gap-2">
-              <button className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all">
-                <SvgVoiceCall
-                  width={17}
-                  height={17}
-                  className="m-auto text-white group-hover:text-black transition-all"
-                />
-              </button>
-              <button className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all">
-                <SvgVideoCall
-                  width={18}
-                  height={18}
-                  className="m-auto text-white group-hover:text-black transition-all"
-                />
-              </button>
-            </div>
-          )}
-          <button
-            onClick={() => setShowSideChat(!showSideChat)}
-            className="group flex hover:bg-[#C266FF] w-10 h-10 rounded-lg transition-all"
-          >
-            <SvgInfo
-              width={17}
-              height={17}
-              className="m-auto text-white group-hover:text-black transition-all"
-            />
-          </button>
-        </div>
-      </div>
+      <ChatHeader
+        friend={friend}
+        showSideChat={showSideChat}
+        setShowSideChat={setShowSideChat}
+      />
 
       {/* Messages */}
       <div

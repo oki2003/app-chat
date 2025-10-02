@@ -143,7 +143,6 @@ const chatController = {
       const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
       const idChat = req.params.idChat;
       const conn = await connectDB();
-      console.log("results:", idChat, "-", payload.id);
       const resultQuery = await conn
         .request()
         .query(

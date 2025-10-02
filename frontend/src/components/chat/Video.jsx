@@ -9,19 +9,9 @@ import {
 import { socketContext } from "../../context/socketContext";
 import PresenceAvatar from "../PresenceAvatar";
 
-function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
-  const {
-    socket,
-    registerAcceptCall,
-    registerReceiveOffer,
-    registerReceiveAnswer,
-    registerAddIceCandidate,
-    registerEndCall,
-    currentUser,
-    cameraFriendRef,
-    micFriendRef,
-    makeCallRef,
-  } = useContext(socketContext);
+function Video({ type, currentFriend, setShowCall }) {
+  const { socket, currentUser, infoCall } = useContext(socketContext);
+
   const peerConnection = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -35,18 +25,42 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
   const [micFriend, setMicFriend] = useState(true);
   const [isCalling, setIsCalling] = useState(true);
 
+  const handler = async (e) => {
+    if (e.detail.data.message === "Send Offer") {
+      receiveOffer(e.detail.data.data);
+      setIsCalling(false);
+    }
+    if (e.detail.data.message === "Send Answer") {
+      receiveAnswer(e.detail.data.data);
+    }
+    if (e.detail.data.message === "Ice Candidate") {
+      addIceCandidate(e.detail.data.data);
+    }
+    if (e.detail.data.message === "Change Mic") {
+      setMicFriend(e.detail.data.data);
+    }
+    if (e.detail.data.message === "Change Camera") {
+      setCameraFriend(e.detail.data.data);
+    }
+    if (e.detail.data.message === "End Call") {
+      endCall();
+    }
+  };
+
   useEffect(() => {
-    setIdVideo(currentFriend.friendshipsID);
+    setIdVideo(currentFriend.id);
     if (hasRunRef.current === false) {
       hasRunRef.current = true;
       initCallConnection();
     }
+    document.addEventListener("WebSocketEvent", handler);
     return () => {
       if (!hasRunRef.current) {
         stream.current.getTracks().forEach((track) => track.stop());
         peerConnection.current?.close();
         peerConnection.current = null;
       }
+      document.removeEventListener("WebSocketEvent", handler);
     };
   }, []);
 
@@ -56,31 +70,51 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       };
       peerConnection.current = new RTCPeerConnection(configuration);
+
       peerConnection.current.ontrack = (e) => {
-        remoteVideoRef.current.srcObject = e.streams[0];
-        remoteVideoRef.current.onloadedmetadata = () => {
-          remoteVideoRef.current
-            .play()
-            .catch((err) => console.log("play error", err));
-        };
+        if (e.streams && e.streams[0]) {
+          remoteVideoRef.current.srcObject = e.streams[0];
+          remoteVideoRef.current.onloadedmetadata = () => {
+            remoteVideoRef.current
+              .play()
+              .catch((err) => console.log("play error", err));
+          };
+        }
       };
+
       peerConnection.current.onicecandidate = (e) => {
         if (e.candidate) {
           socket.send(
             JSON.stringify({
               type: "Ice Candidate",
-              to: currentFriend?.id,
+              to: currentFriend.id,
               candidate: e.candidate,
             })
           );
         }
       };
 
+      peerConnection.current.oniceconnectionstatechange = () => {
+        console.log(
+          "ICE connection state:",
+          peerConnection.current.iceConnectionState
+        );
+
+        if (peerConnection.current.iceConnectionState === "connected") {
+          console.log("Kết nối WebRTC thành công!");
+        }
+      };
+
       // getUserMedia
-      stream.current = await navigator.mediaDevices.getUserMedia(type);
+      let typeCall = infoCall?.typeCall || type;
+      stream.current = await navigator.mediaDevices.getUserMedia(
+        typeCall === "voice"
+          ? { video: false, audio: true }
+          : { video: true, audio: true }
+      );
       localVideoRef.current.srcObject = stream.current;
 
-      if (type.video) {
+      if (typeCall === "video") {
         stream.current.getTracks().forEach((track) => {
           peerConnection.current.addTrack(track, stream.current);
         });
@@ -96,30 +130,17 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
           .catch((err) => console.log("play error", err));
       };
 
-      if (!type.video) {
+      if (type === "voice") {
         setCamera(false);
         setCameraFriend(false);
       }
 
-      if (isSend) {
-        socket.send(
-          JSON.stringify({
-            type: "Init Call Connection",
-            to: currentFriend.id,
-            typeCall: type,
-          })
-        );
-      }
-
-      if (isReceive) {
-        setIsCalling(false);
-        type.video && setCameraFriend(true);
-        socket.send(
-          JSON.stringify({
-            type: "Accept Call Connection",
-            to: currentFriend.id,
-          })
-        );
+      if (infoCall) {
+        AcceptCallConnection();
+        if (infoCall.typeCall === "video") {
+          setCamera(true);
+          setCameraFriend(true);
+        }
       }
     } catch (err) {
       console.log(`Lỗi: ${err}`);
@@ -132,12 +153,12 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
     socket.send(
       JSON.stringify({
         type: "Send Offer",
-        to: currentFriend?.id,
+        to: currentFriend.id,
         offer: offer,
       })
     );
     setIsCalling(false);
-    type.video && setCameraFriend(true);
+    type === "video" && setCameraFriend(true);
   }
 
   async function receiveOffer(offer) {
@@ -168,8 +189,7 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
 
   function endCall() {
     hasRunRef.current = false;
-    setShowCall({ isShow: false, isSend: true, isReceive: false });
-    makeCallRef.current = null;
+    setShowCall(false);
   }
 
   function handleMic() {
@@ -181,7 +201,7 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
       socket.send(
         JSON.stringify({
           type: "Change Mic",
-          to: currentFriend?.id,
+          to: currentFriend.id,
           mic: value,
         })
       );
@@ -213,18 +233,10 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
     }
   }
 
-  registerAcceptCall(AcceptCallConnection);
-  registerReceiveOffer(receiveOffer);
-  registerReceiveAnswer(receiveAnswer);
-  registerAddIceCandidate(addIceCandidate);
-  registerEndCall(endCall);
-  cameraFriendRef.current = setCameraFriend;
-  micFriendRef.current = setMicFriend;
-
   return (
     <div
       className={`h-[191px] relative flex w-full justify-evenly mb-5 ${
-        idVideo !== currentFriend.friendshipsID && "hidden"
+        idVideo !== currentFriend.id && "hidden"
       }`}
     >
       <div className={`w-[45%] h-[100%] flex bg-slate-800 rounded-xl`}>
@@ -246,7 +258,9 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
         </div>
         <video
           ref={remoteVideoRef}
-          className={`w-full h-full ${!cameraFriend && "hidden"}`}
+          className={`w-full h-full ${!cameraFriend ? "hidden" : ""}`}
+          autoPlay
+          playsInline
         ></video>
         <div
           className={`relative w-44 h-44 m-auto ${cameraFriend && "hidden"}`}
@@ -258,7 +272,7 @@ function Video({ type, currentFriend, isSend, isReceive, setShowCall }) {
             }`}
           ></div>
           <div className={`w-44 h-44 m-auto ${isCalling && "opacity-60"}`}>
-            <PresenceAvatar imgUrl={currentFriend?.avatarURL} />
+            <PresenceAvatar imgUrl={currentFriend.avatarURL} />
           </div>
         </div>
       </div>
